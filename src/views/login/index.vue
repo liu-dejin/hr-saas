@@ -5,30 +5,97 @@
       <h1>登录</h1>
       <el-card shadow="never" class="login-card">
         <!--登录表单-->
-        <el-form>
-          <el-form-item>
-            <el-input placeholder="请输入用户名" />
+        <el-form ref="form" :rules="loginRules" :model="loginForm">
+          <el-form-item prop="mobile">
+            <el-input v-model="loginForm.mobile" placeholder="请输入手机号" />
           </el-form-item>
-          <el-form-item>
-            <el-input placeholder="请输入密码" />
+          <el-form-item prop="password">
+            <el-input v-model="loginForm.password" placeholder="请输入密码" show-password />
           </el-form-item>
-          <el-form-item>
-            <el-checkbox>
+          <el-form-item prop="isAgree">
+            <el-checkbox v-model="loginForm.isAgree">
               用户使用协议
             </el-checkbox>
           </el-form-item>
           <el-form-item>
-            <el-button style="width: 350px;" type="primary">
+            <el-button style="width: 350px;" type="primary" @click="login">
               登录
             </el-button>
+            <el-button @click="testAjax">测试</el-button>
           </el-form-item>
         </el-form></el-card>
     </div>
   </div>
 </template>
 <script>
+import axios from 'axios'
 export default {
-  name: 'Login'
+  name: 'Login',
+  data() {
+    return {
+      loginForm: {
+        mobile: '',
+        password: '',
+        isAgree: false
+      },
+      loginRules: {
+        mobile: [{
+          required: true,
+          message: '手机号不能为空',
+          trigger: 'blur'
+        }, {
+          pattern: /^1[3-9]\d{9}$/,
+          message: '手机号格式不正确',
+          trigger: 'blur'
+        }],
+        password: [{
+          required: true,
+          message: '密码不能为空',
+          trigger: 'blur'
+        }, {
+          min: 6,
+          max: 16,
+          message: '密码长度应该在6-16位之间',
+          trigger: 'blur'
+        }],
+        // required只能校验 null undefined ''
+        isAgree: [
+          {
+            // 自定义校验
+            validator: (rule, value, callback) => {
+              // rule 规则
+              // value 检验的值
+              // callback 函数promise resolve reject
+              // callback() callback(new Error('错误信息'))
+              value ? callback() : callback(new Error('请勾选用户协议'))
+            }
+          }
+        ]
+      }
+    }
+  },
+  methods: {
+    login() {
+      // 预校验validate
+      this.$refs.form.validate((isOk) => {
+        if (isOk) {
+          this.$store.dispatch('user/login', this.loginForm)
+        }
+      })
+    },
+    testAjax() {
+      axios({
+        // url: 'http://heimahr.itheima.net/api/sys/login',
+        url: '/api/sys/login', // http://localhost:9528/api/sys/login => http://heimahr.itheima.net/api/sys/login
+
+        method: 'post',
+        data: {
+          mobile: '13800000002',
+          password: 'itHeiMa@20250905'
+        }
+      })
+    }
+  }
 }
 </script>
 <style lang="scss">
